@@ -10,14 +10,12 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 export class TicketsController {
   constructor(
     private readonly ticketsService: TicketsService,
-
   ) {}
 
- @UseGuards(JwtAuthGuard)
- @Get('user-tickets')
-  async getUserTickets(
-          @User('userId') userId: string) {
-            console.log('userId', userId);
+  @UseGuards(JwtAuthGuard)
+  @Get('user-tickets')
+  async getUserTickets(@User('userId') userId: string) {
+    console.log('userId', userId);
     return this.ticketsService.getUserTickets(userId);
   }
-} 
+}
