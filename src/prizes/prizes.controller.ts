@@ -5,13 +5,16 @@ import { PrizesService } from './prizes.service';
 export class PrizesController {
   constructor(private readonly prizesService: PrizesService) {}
 
-  @Post('create')
-  async createPrize(@Body() body: { name: string; amount: number }) {
-    return this.prizesService.createPrize(body.name, body.amount);
+  @Post()
+  async create(@Body() body: { position: number; amount: number }) {
+    return this.prizesService.create(body.position, body.amount);
   }
 
-  @Put('update/:id')
-  async updatePrize(@Param('id') id: number, @Body() body: { name: string; amount: number }) {
-    return this.prizesService.updatePrize(id, body.name, body.amount);
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() body: { position: number; amount: number }
+  ) {
+    return this.prizesService.update(id, body.position, body.amount);
   }
 } 

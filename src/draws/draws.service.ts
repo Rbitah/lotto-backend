@@ -6,6 +6,7 @@ import { Ticket } from '../tickets/ticket.entity';
 import { IsString, IsInt, Min } from 'class-validator';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { NotificationsService } from '../notifications/notifications.service';
+import { DrawStatus } from './draw.entity';
 
 @Injectable()
 export class DrawsService {
@@ -20,20 +21,41 @@ export class DrawsService {
     this.scheduleDraws();
   }
 
-  async createDraw(): Promise<Draw> {
-    const tickets = await this.ticketsRepository.find();
-    const winningTickets = this.selectWinners(tickets);
-    const draw = this.drawsRepository.create({ date: new Date(), winningTickets });
-    await this.drawsRepository.save(draw);
+  private calculatePrize(position: number): number {
+    const prizeStructure = {
+      1: 1000000,
+      2: 500000,
+      3: 250000
+    };
+    return prizeStructure[position] || 0;
+  }
 
-    // Notify users
-    for (const ticket of winningTickets) {
+  async createDraw(): Promise<Draw> {
+    const eligibleTickets = await this.ticketsRepository.find({
+      where: { isValid: true, isWinner: false }
+    });
+    
+    const winningTickets = this.selectWinners(eligibleTickets);
+    
+    const draw = await this.drawsRepository.save({
+      date: new Date(),
+      status: DrawStatus.COMPLETED,
+      totalPrizePool: 1750000, // Sum of all prizes
+      prizes: winningTickets.map((ticket, index) => ({
+        position: index + 1,
+        amount: this.calculatePrize(index + 1),
+        ticket
+      }))
+    });
+
+    // Notify winners
+    await Promise.all(winningTickets.map(async (ticket, index) => {
       await this.notificationsService.sendEmail(
         ticket.user.email,
-        'Congratulations! You have won!',
-        `Dear ${ticket.user.email}, you have won in the latest draw!`
+        'Congratulations! You won!',
+        `You won ${index + 1}st place with prize amount: ${this.calculatePrize(index + 1)}`
       );
-    }
+    }));
 
     return draw;
   }

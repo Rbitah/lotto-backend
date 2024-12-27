@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Prize } from './prize.entity';
@@ -7,18 +7,21 @@ import { Prize } from './prize.entity';
 export class PrizesService {
   constructor(
     @InjectRepository(Prize)
-    private prizesRepository: Repository<Prize>,
+    private prizesRepository: Repository<Prize>
   ) {}
 
-  async createPrize(name: string, amount: number): Promise<Prize> {
-    const prize = this.prizesRepository.create({ name, amount });
+  async create(position: number, amount: number): Promise<Prize> {
+    const prize = this.prizesRepository.create({ position, amount });
     return this.prizesRepository.save(prize);
   }
 
-  async updatePrize(id: number, name: string, amount: number): Promise<Prize> {
-    const prize = await this.prizesRepository.findOne({ where: { id } });
-    if (!prize) throw new Error('Prize not found');
-    prize.name = name;
+  async update(prizeId: string, position: number, amount: number): Promise<Prize> {
+    const prize = await this.prizesRepository.findOne({ 
+      where: { prizeId } 
+    });
+    if (!prize) throw new NotFoundException('Prize not found');
+
+    prize.position = position;
     prize.amount = amount;
     return this.prizesRepository.save(prize);
   }

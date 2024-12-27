@@ -1,20 +1,26 @@
 import { Controller, Post, Body, UseGuards, Request, Param, Get, Query } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
-import { AuthGuard } from '../auth/auth.guard';
+import { User } from '../auth/user.decorator';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('payments')
+
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
-  @UseGuards(AuthGuard)
-  @Post()
-  create(@Request() req, @Body() body: { quantity: number; pricePerTicket: number }) {
-    const userId = req.userId;
-    return this.paymentsService.create(userId, body.quantity, body.pricePerTicket);
+  @UseGuards(JwtAuthGuard)
+  @Post('initiate')
+  async initiatePayment(
+    @Body() body: { quantity: number; pricePerTicket: number },
+    @User('userId') userId: string
+  ) {
+    console.log('userId', userId);
+    console.log('body', body);
+    return this.paymentsService.initiatePayment(userId, body.quantity, body.pricePerTicket);
   }
 
   @Get('verify/:tx_ref')  // Ensure the route is correctly defined
   async verifyPayment(@Param('tx_ref') tx_ref: string) {
     return this.paymentsService.verifyPayment(tx_ref);
   }
-} 
+}

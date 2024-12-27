@@ -1,14 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, OneToMany } from 'typeorm';
 import { User } from '../../users/user.entity';
 import { Ticket } from '../../tickets/ticket.entity';
+//import { PaymentStatus } from '../enums/payment-status.enum';
 
 @Entity()
 export class Payment {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  status: string;
+  @PrimaryGeneratedColumn("uuid")
+  paymentId: string;
 
   @Column()
   tx_ref: string;
@@ -17,11 +15,22 @@ export class Payment {
   amount: number;
 
   @Column()
-  date: Date;
+  status: string;
 
-  @ManyToOne(() => User, user => user.payments)
+  @ManyToOne(() => User, (user) => user.payments)
   user: User;
 
-  @ManyToOne(() => Ticket, ticket => ticket.payments)
+  @ManyToOne(() => Ticket, (ticket) => ticket.payments, { nullable: true })
   ticket: Ticket;
-} 
+  
+  
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @Column({ nullable: true })
+  completedAt: Date;
+
+  @Column({ type: 'json', nullable: true })
+  paymentDetails: any;
+}

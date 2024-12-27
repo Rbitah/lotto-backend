@@ -16,7 +16,16 @@ export class TicketsService {
     return this.ticketsRepository.save(ticket);
   }
 
-  async getUserTickets(user: User): Promise<Ticket[]> {
-    return this.ticketsRepository.find({ where: { user } });
+  async getUserTickets(userId: string): Promise<Ticket[]> {
+    console.log('userId', userId);
+    return this.ticketsRepository
+      .createQueryBuilder('ticket')
+      .innerJoinAndSelect('ticket.user', 'user')
+      .where('user.userId = :userId', { userId })
+      .andWhere('ticket.paymentStatus = :paymentStatus', { paymentStatus: 'COMPLETED' })
+      .getMany();
   }
+  
+  
+  
 } 

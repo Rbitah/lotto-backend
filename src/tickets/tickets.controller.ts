@@ -1,20 +1,23 @@
-import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Param } from '@nestjs/common';
 import { TicketsService } from './tickets.service';
+import { PaymentsService } from '../payments/payments.service';
+import { AuthGuard } from '../auth/auth.guard';
+import { CreateTicketDto } from './dto/create-ticket.dto';
+import { User } from 'src/auth/user.decorator';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('tickets')
 export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) {}
+  constructor(
+    private readonly ticketsService: TicketsService,
 
-  @UseGuards(JwtAuthGuard)
-  @Post('purchase')
-  async purchase(@Request() req, @Body() body: { quantity: number; totalPrice: number }) {
-    return this.ticketsService.purchaseTicket(req.user, body.quantity, body.totalPrice);
-  }
+  ) {}
 
-  @UseGuards(JwtAuthGuard)
-  @Get('user-tickets')
-  async getUserTickets(@Request() req) {
-    return this.ticketsService.getUserTickets(req.user);
+ @UseGuards(JwtAuthGuard)
+ @Get('user-tickets')
+  async getUserTickets(
+          @User('userId') userId: string) {
+            console.log('userId', userId);
+    return this.ticketsService.getUserTickets(userId);
   }
 } 
